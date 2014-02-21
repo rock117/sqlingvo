@@ -40,6 +40,8 @@
 
 (defmulti compile-sql (fn [db ast] (:op ast)))
 
+
+
 (defn keyword-sql [k]
   (replace (upper-case (name k)) #"-" " "))
 
@@ -428,14 +430,25 @@
 (defmethod compile-sql :union [db node]
   (compile-set-op db :union node))
 
+(defn compile-update-row
+  "Compile a SQL alias expression."
+  [db row]
+  (->> (map
+        #(concat-sql
+          (sql-quote db (first %1)) " = "
+          (compile-sql db (second %1)))
+        (seq row))
+       (join-sql ", ")))
+
 (defmethod compile-sql :update [db {:keys [where from exprs table row returning]}]
   (concat-sql
    "UPDATE " (compile-sql db table)
    " SET "
    (join-sql
     ", " (if row
-           (for [column (keys row)]
-             [(str (sql-quote db column) " = ?") (get row column)])
+           (for [[column value] (seq row)]
+             (concat-sql (sql-quote db column) " = "
+                         (compile-expr db value)))
            (map unwrap-stmt (compile-exprs db exprs))))
    (if-not (empty? from)
      (concat-sql " FROM " (join-sql " " (map #(compile-from db %1) from))))

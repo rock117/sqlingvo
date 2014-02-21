@@ -1187,7 +1187,17 @@
   (is (= :update (:op stmt)))
   (is (= (parse-table :films) (:table stmt)))
   (is (= (parse-condition '(= :kind "Drama")) (:where stmt)))
-  (is (= {:kind "Dramatic"} (:row stmt))))
+  (is (= {:kind {:op :constant :form "Dramatic"}} (:row stmt))))
+
+(deftest-stmt test-update-drama-to-lower-dramatic
+  ["UPDATE \"films\" SET \"kind\" = lower(?) WHERE (\"kind\" = ?)" "Dramatic" "Drama"]
+  (update :films {:kind '(lower "Dramatic")}
+    (where '(= :kind "Drama")))
+  (is (= :update (:op stmt)))
+  (is (= (parse-table :films) (:table stmt)))
+  (is (= (parse-condition '(= :kind "Drama")) (:where stmt)))
+  (is (= {:kind {:op :fn, :name :lower, :args [{:op :constant, :form "Dramatic"}]}}
+         (:row stmt))))
 
 (deftest-stmt test-update-drama-to-dramatic-returning
   ["UPDATE \"films\" SET \"kind\" = ? WHERE (\"kind\" = ?) RETURNING *" "Dramatic" "Drama"]
@@ -1197,7 +1207,7 @@
   (is (= :update (:op stmt)))
   (is (= (parse-table :films) (:table stmt)))
   (is (= (parse-condition '(= :kind "Drama")) (:where stmt)))
-  (is (= {:kind "Dramatic"} (:row stmt)))
+  (is (= {:kind {:op :constant :form "Dramatic"}} (:row stmt)))
   (is (= [(parse-expr *)] (:returning stmt))))
 
 (deftest-stmt test-update-daily-return

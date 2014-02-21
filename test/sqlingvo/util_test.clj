@@ -101,6 +101,14 @@
     '(generate_series 0 10)
     {:op :fn, :name :generate_series, :args [{:op :constant, :form 0} {:op :constant, :form 10}]}))
 
+(deftest test-parse-row
+  (are [row expected]
+    (is (= expected (parse-row row)))
+    {:kind "Dramatic"}
+    {:kind {:op :constant, :form "Dramatic"}}
+    {:kind '(lower "Dramatic")}
+    {:kind {:op :fn, :name :lower, :args [{:op :constant, :form "Dramatic"}]}}))
+
 (deftest test-qualified-name
   (are [arg expected]
     (is (= expected (qualified-name arg)))

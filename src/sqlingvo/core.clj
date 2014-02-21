@@ -292,7 +292,7 @@
   [table row & body]
   (let [table (parse-table table)
         exprs (if (sequential? row) (parse-exprs row))
-        row (if (map? row) row)]
+        row (if (map? row) (parse-row row))]
     (Stmt. (fn [_]
              ((m-seq (remove nil? body))
               {:op :update

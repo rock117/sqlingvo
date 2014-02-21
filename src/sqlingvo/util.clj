@@ -179,3 +179,11 @@
    (list? forms)
    (parse-expr forms)
    :else (throw (ex-info "Can't parse FROM form." {:forms forms}))))
+
+(defn parse-row
+  "Parse the map `row` that can contain expressions as values."
+  [row]
+  (reduce
+   (fn [m [k v]]
+     (assoc m k (parse-expr v)))
+   {} (seq row)))
